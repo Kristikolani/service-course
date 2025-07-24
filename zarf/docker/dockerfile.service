@@ -1,39 +1,41 @@
-# Build the Go Binary.
-FROM golang:1.24 AS build_products_api
-ENV CGO_ENABLED=0
-ARG BUILD_REF
+# Build stage
+FROM golang:1.24 AS builder
 
-# Create the service directory and the copy the module files first and then
-# download the dependencies. If this doesn't change, we won't need to do this
-# again in future builds.
-# RUN mkdir /service
-# COPY go.* /service/
-# WORKDIR /service
-# RUN go mod download
+WORKDIR /app
 
-# Copy the source code into the container.
-COPY . /service-course
+# Copy go mod files
+COPY go.mod ./
 
-# Build the service binary.
-WORKDIR /service-course/app/services/products-api
-RUN go build -ldflags "-X main.build=${BUILD_REF}"
+# Copy go.sum if it exists, otherwise create it
+COPY go.sum* ./
 
+# Download dependencies
+RUN go mod download
 
-# Run the Go Binary in Alpine.
+# Copy source code
+COPY . .
+
+# Build the application
+WORKDIR /app/app/services/products-api
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.build=${BUILD_REF}" -o products-api
+
+# Final stage
 FROM alpine:3.22
-ARG BUILD_DATE
-ARG BUILD_REF
-RUN addgroup -g 1000 -S products && \
-    adduser -u 1000 -h /service-course -G products -S products
-COPY --from=build_products_api --chown=products:products /service-course/app/services/products-api/products-api /service-course/products-api
-WORKDIR /service-course
-USER products-api
-CMD ["./products-api"]
 
-LABEL org.opencontainers.image.created="${BUILD_DATE}" \
-      org.opencontainers.image.title="products-api" \
-      org.opencontainers.image.authors="Kristi Kolani <kristikolani@gmail.com>" \
-      org.opencontainers.image.source="https://github.com/Kristikolani/service-course/tree/main/app/services/sales-api" \
-      org.opencontainers.image.revision="${BUILD_REF}" \
-      org.opencontainers.image.vendor="Kristi Kolani"
+# Install ca-certificates for HTTPS requests
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /app
+
+# Copy the binary from builder stage
+COPY --from=builder /app/app/services/products-api/products-api .
+
+# Make the binary executable
+RUN chmod +x products-api
+
+# Expose port
+EXPOSE 3000
+
+# Run the application
+CMD ["./products-api"]
 

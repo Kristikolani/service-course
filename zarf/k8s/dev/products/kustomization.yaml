@@ -6,5 +6,5 @@ patches:
 - path: ./dev-products-patch-deploy.yaml
 images:
 - name: service-image
-  newName: localhost/kristi/products-api
+  newName: localhost/kristi/products
   newTag: 0.0.1

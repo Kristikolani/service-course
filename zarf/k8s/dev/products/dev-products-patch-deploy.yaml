@@ -22,3 +22,21 @@ spec:
     spec:
       dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
+      
+      containers:
+        - name: products-api
+          resources:
+            requests:
+              cpu: "500m" 
+            limits:
+              cpu: "500m"
+          volumeMounts:
+            - name: vault
+              mountPath: /vault
+
+        - name: metrics
+          resources:
+            requests:
+              cpu: "100m"
+            limits:
+              cpu: "100m"

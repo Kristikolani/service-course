@@ -41,8 +41,15 @@ dev-apply:
 	kustomize build zarf/k8s/dev/products | kubectl apply -f -
 	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(PRODUCTS_APP) --timeout=120s --for=condition=Ready
 
+dev-restart:
+	kubectl rollout restart deployment $(PRODUCTS_APP) --namespace=$(NAMESPACE)
+
+dev-update: all dev-load dev-restart
+
+dev-update-apply: all dev-load dev-apply
+
 dev-logs:
-	kubectl logs --namespace=$(NAMESPACE) -l app=$(PRODUCTS_APP) --all-containers=true -f --tail=100 --max-log-requests=6 | go run app/tooling/logfmt/main.go -service=$(SERVICE_NAME)
+	kubectl logs --namespace=$(NAMESPACE) -l app=$(PRODUCTS_APP) --all-containers=true -f --tail=100 --max-log-requests=6 | go run app/services/products-api/main.go -service=$(SERVICE_NAME)
 
 dev-describe-deployment:
 	kubectl describe deployment --namespace=$(NAMESPACE) $(PRODUCTS_APP)
