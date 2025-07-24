@@ -27,7 +27,7 @@ func main() {
 		return ""
 	}
 
-	log = logger.NewWithEvents(os.Stdout, logger.LevelInfo, "SALES", traceIDFn, events)
+	log = logger.NewWithEvents(os.Stdout, logger.LevelInfo, "PRODUCTS", traceIDFn, events)
 
 	ctx := context.Background()
 

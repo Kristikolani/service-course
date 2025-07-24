@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products
+  namespace: products-system
+
+spec:
+  selector:
+    matchLabels:
+      app: products
+
+  replicas: 1
+
+  strategy:
+    type: Recreate
+
+  template:
+    metadata:
+      labels:
+        app: products
+
+    spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
