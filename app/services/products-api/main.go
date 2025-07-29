@@ -28,7 +28,6 @@ func main() {
 		},
 	}
 
-
 	traceIDFn := func(ctx context.Context) string {
 		return ""
 	}
@@ -44,11 +43,13 @@ func main() {
 }
 
 func run(ctx context.Context, log *logger.Logger) error {
+	// Set GOMAXPROCS to 1 for containerized environments
+	// This provides better resource utilization and predictable performance
+	runtime.GOMAXPROCS(1)
 
 	log.Info(ctx, "startup", "GOMAXPROCS", runtime.GOMAXPROCS(0), "build", build)
 
 	// Configuration
-
 	cfg := struct {
 		conf.Version
 		Web struct {
@@ -62,7 +63,7 @@ func run(ctx context.Context, log *logger.Logger) error {
 	}{
 		Version: conf.Version{
 			Build: build,
-			Desc:  "JOHN DOE",
+			Desc:  "PRODUCTS SERVICE",
 		},
 	}
 
@@ -89,13 +90,17 @@ func run(ctx context.Context, log *logger.Logger) error {
 	expvar.NewString("build").Set(build)
 
 	// Start Debug Service
-
 	go func() {
 		log.Info(ctx, "startup", "status", "debug v1 router started", "host", cfg.Web.DebugHost)
 
-			if err := http.ListenAndServe(cfg.Web.DebugHost, debug.Mux()); err != nil {
-				log.Error(ctx, "shutdown", "status", "debug v1 router closed", "host", cfg.Web.DebugHost, "msg", err)
-			}
+		// Create a simple debug mux with pprof and expvar endpoints
+		mux := http.NewServeMux()
+		mux.Handle("/debug/vars", expvar.Handler())
+		mux.HandleFunc("/debug/pprof/", http.DefaultServeMux.ServeHTTP)
+
+		if err := http.ListenAndServe(cfg.Web.DebugHost, mux); err != nil {
+			log.Error(ctx, "shutdown", "status", "debug v1 router closed", "host", cfg.Web.DebugHost, "msg", err)
+		}
 	}()
 
 	shutdown := make(chan os.Signal, 1)

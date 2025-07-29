@@ -76,6 +76,12 @@ service:
 		.
 
 
+# Metrics and Tracing
+
+metrics-view-sc:
+	expvarmon -ports="localhost:4000" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
+
+
 deps-reset:
 	git checkout -- go.mod
 	go mod tidy
