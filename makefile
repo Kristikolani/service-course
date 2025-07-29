@@ -8,7 +8,7 @@ TEMPO           := grafana/tempo:2.6.0
 LOKI            := grafana/loki:3.4.0
 PROMTAIL        := grafana/promtail:3.4.0
 
-KIND_CLUSTER    := ardan-starter-cluster
+KIND_CLUSTER    := kristi-starter-cluster
 NAMESPACE       := products-system
 PRODUCTS_APP    := products
 BASE_IMAGE_NAME := localhost/kristi
@@ -74,3 +74,13 @@ service:
 		--build-arg BUILD_REF=$(VERSION) \
 		--build-arg BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ") \
 		.
+
+
+deps-reset:
+	git checkout -- go.mod
+	go mod tidy
+	go mod vendor
+
+tidy:
+	go mod tidy
+	go mod vendor

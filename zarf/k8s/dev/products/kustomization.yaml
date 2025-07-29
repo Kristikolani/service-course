@@ -4,6 +4,7 @@ resources:
 - ../../base/products/
 patches:
 - path: ./dev-products-patch-deploy.yaml
+- path: ./dev-products-patch-service.yaml
 images:
 - name: service-image
   newName: localhost/kristi/products
